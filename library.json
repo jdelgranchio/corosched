@@ -1,0 +1,30 @@
+{
+  "name": "corosched",
+  "version": "0.3.0",
+  "description": "Static task-set with static priority cooperative scheduling loop with no preemption.",
+  "license": "MPL-2.0",
+  "homepage": "https://github.com/jdelgranchio/corosched",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jdelgranchio/corosched.git"
+  },
+  "includeDirs": [
+    "include"
+  ],
+  "build": {
+    "extraScript": "scripts/frame_check.py",
+    "flags": [
+      "-Wall",
+      "-Wextra",
+      "-Wshadow",
+      "-Wconversion",
+      "-std=c++23",
+      "-fno-exceptions",
+      "-fno-rtti",
+      "-fno-unwind-tables",
+      "-fno-asynchronous-unwind-tables",
+      "-fno-threadsafe-statics",
+      "-fno-use-cxa-atexit"
+    ]
+  }
+}

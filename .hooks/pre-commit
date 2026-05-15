@@ -1,0 +1,31 @@
+#!/bin/bash
+# SPDX-License-Identifier: MPL-2.0
+# This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
+# If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
+
+# Formats the staged C++ files with clang-format and the repository's .clang-format.
+# Enable once per clone: git config core.hooksPath .hooks
+#
+# What gets committed is the staged version of each file, formatted.
+# A file that changes is also formatted in the working copy, so a partly staged file keeps only its real unstaged edits and no formatting difference.
+
+set -euo pipefail
+
+if ! command -v clang-format >/dev/null; then
+    echo "pre-commit: clang-format not found. Install it, or skip this hook once with: git commit --no-verify" >&2
+    exit 1
+fi
+
+git diff --cached --name-only --diff-filter=ACMR -z -- '*.cpp' '*.hpp' '*.h' |
+while IFS= read -r -d '' file; do
+    mode=$(git --literal-pathspecs ls-files --stage -- "$file" | cut -d' ' -f1)
+    [ "$mode" = 120000 ] && continue # a symlink has no C++ to format
+
+    old=$(git rev-parse ":$file")
+    new=$(git cat-file blob "$old" | clang-format --style=file --assume-filename="$file" | git hash-object -w --stdin --path="$file")
+    [ "$new" = "$old" ] && continue
+
+    git --literal-pathspecs update-index --cacheinfo "$mode,$new,$file"
+    [ -f "$file" ] && clang-format -i --style=file "$file"
+    echo "pre-commit: formatted $file"
+done
